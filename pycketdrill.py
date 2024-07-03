@@ -145,14 +145,32 @@ def _pcap_begin():
 
     tuntap = TunTapInterface(TUN_DEV)
 
+def pcap_defaults(sport=None, dport=None):
+    '''Set default source and/or destination port for TCPx wrapper.'''
+    global pcap_sport
+    global pcap_dport
+
+    if sport:
+        pcap_sport = sport
+    if dport:
+        pcap_dport = dport
+
+
 def IPx(*args, **kwargs):
     '''
     Create IP or IPv6 packet (based on the environment) destined
     to local address from remote address.
     '''
     if mode == MODE_V4 or mode == MODE_V46:
-        return IP(dst=la, src=ra)
-    return IPv6(dst=la, src=ra)
+        return IP(*args, **kwargs, dst=la, src=ra)
+    return IPv6(*args, **kwargs, dst=la, src=ra)
+
+def TCPx(*args, **kwargs):
+    '''
+    Create TCP/IP packet (via IPx()) with the default TCP source and
+    destination ports. The default ports are set via pcap_defaults().
+    '''
+    return IPx() / TCP(*args, **kwargs, sport=pcap_sport, dport=pcap_dport)
 
 def local_addr():
     '''Return local address.'''
@@ -176,7 +194,10 @@ def listen(addr):
     return (ln, sport, dport)
 
 def connect(addr):
-    '''Wrapper around non-blocking socket.connect with extra logging.'''
+    '''
+    Wrapper around non-blocking socket.connect with extra logging.
+    Picks a port on the destination to connect to and returns it.
+    '''
     global unique_port
     dport = unique_port
     unique_port += 1

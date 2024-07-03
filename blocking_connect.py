@@ -9,8 +9,9 @@ for _ in setup_af():
     syn = pcap_recv(TCP)
     assert syn[TCP].flags == 'S'
 
-    sport = syn[TCP].sport
-    pcap_send(IPx() / TCP(sport=dport, dport=sport, flags='SA', ack=syn[TCP].seq+1, seq=0))
+    pcap_defaults(sport=dport, dport=syn[TCP].sport)
+
+    pcap_send(TCPx(flags='SA', ack=syn[TCP].seq+1, seq=0))
     ack = pcap_recv(TCP)
 
     assert ack[TCP].flags == 'A'
