@@ -154,18 +154,26 @@ def IPx(*args, **kwargs):
         return IP(dst=la, src=ra)
     return IPv6(dst=la, src=ra)
 
+def local_addr():
+    '''Return local address.'''
+    return la
+
+def remote_addr():
+    '''Return remote address.'''
+    return ra
+
 def listen(addr):
     '''Wrapper around socket.bind and listen with extra logging.'''
     global unique_port
-    sport = unique_port
+    dport = unique_port
     unique_port += 1
 
     ln = socket.socket(af, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     ln.bind((addr, 0))
     ln.listen(1)
-    dport = ln.getsockname()[1]
+    sport = ln.getsockname()[1]
     logger.info(f'  listen on {dport}')
-    return (ln, dport, sport)
+    return (ln, sport, dport)
 
 def connect(addr):
     '''Wrapper around non-blocking socket.connect with extra logging.'''

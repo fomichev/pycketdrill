@@ -4,11 +4,11 @@
 from pycketdrill import *
 
 for _ in setup_af():
-    ln, dport, sport = listen(la)
+    ln, sport, dport = listen(local_addr())
 
-    pcap_send(IPx() / TCP(sport=sport, dport=dport, flags='S', seq=0, options=[('MSS', 1000)]))
+    pcap_send(IPx() / TCP(sport=dport, dport=sport, flags='S', seq=0, options=[('MSS', 1000)]))
     synack = pcap_recv(TCP)
-    pcap_send(IPx() / TCP(sport=sport, dport=dport, flags='A', ack=synack[TCP].seq+1, seq=1))
+    pcap_send(IPx() / TCP(sport=dport, dport=sport, flags='A', ack=synack[TCP].seq+1, seq=1))
 
     sk = accept(ln)
 
@@ -23,4 +23,4 @@ for _ in setup_af():
     assert chunk2[TCP].flags == 'PA'
     assert len(chunk2[TCP].payload) == 1000
 
-    pcap_send(IPx() / TCP(sport=sport, dport=dport, flags='A', ack=chunk1[TCP].seq+2000, seq=1))
+    pcap_send(IPx() / TCP(sport=dport, dport=sport, flags='A', ack=chunk1[TCP].seq+2000, seq=1))

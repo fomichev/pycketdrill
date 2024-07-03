@@ -4,27 +4,27 @@
 from pycketdrill import *
 
 for _ in setup_af():
-    ln, dport, sport = listen(la)
+    ln, sport, dport = listen(local_addr())
 
-    pcap_send(IPx() / TCP(sport=sport, dport=dport, flags='S', seq=0))
+    pcap_send(IPx() / TCP(sport=dport, dport=sport, flags='S', seq=0))
     synack = pcap_recv(TCP)
-    pcap_send(IPx() / TCP(sport=sport, dport=dport, flags='A', ack=synack[TCP].seq+1, seq=1))
+    pcap_send(IPx() / TCP(sport=dport, dport=sport, flags='A', ack=synack[TCP].seq+1, seq=1))
 
     sk = accept(ln)
 
-    pcap_send(IPx() / TCP(sport=sport, dport=dport, flags='PA', ack=synack[TCP].seq+1, seq=1) / Raw(b'\x00' * 2000))
+    pcap_send(IPx() / TCP(sport=dport, dport=sport, flags='PA', ack=synack[TCP].seq+1, seq=1) / Raw(b'\x00' * 2000))
     ack = pcap_recv(TCP)
     assert ack[TCP].ack == 2001
     data = sk.recv(2000)
     assert len(data) == 2000
 
-    pcap_send(IPx() / TCP(sport=sport, dport=dport, flags='PA', ack=synack[TCP].seq+1, seq=2001) / Raw(b'\x00' * 2000))
+    pcap_send(IPx() / TCP(sport=dport, dport=sport, flags='PA', ack=synack[TCP].seq+1, seq=2001) / Raw(b'\x00' * 2000))
     ack = pcap_recv(TCP)
     assert ack[TCP].ack == 4001
     data = sk.recv(2000)
     assert len(data) == 2000
 
-    pcap_send(IPx() / TCP(sport=sport, dport=dport, flags='PA', ack=synack[TCP].seq+1, seq=4001) / Raw(b'\x00' * 2000))
+    pcap_send(IPx() / TCP(sport=dport, dport=sport, flags='PA', ack=synack[TCP].seq+1, seq=4001) / Raw(b'\x00' * 2000))
     ack = pcap_recv(TCP)
     assert ack[TCP].ack == 6001
     data = sk.recv(1000)

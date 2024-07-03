@@ -4,7 +4,7 @@
 from pycketdrill import *
 
 for _ in setup_af():
-    sk, dport = connect(ra)
+    sk, dport = connect(remote_addr())
 
     syn = pcap_recv(TCP)
     assert syn[TCP].flags == 'S'
